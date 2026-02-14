@@ -16,9 +16,7 @@ def main():
                 if not msg:
                     break
                 
-                # Welcome user
-                
-                if msg.strip().upper() == "DISCONNECT":
+                if msg.strip().upper() == "EXIT":
                     connected = False
                     break
                 

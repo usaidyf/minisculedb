@@ -1,4 +1,4 @@
-from utils import validate_command, handle_command, MinisculeError
+from utils import validate_command, handle_command, parse_value, MinisculeError
 import pytest
 import threading
 
@@ -15,7 +15,7 @@ def test_validate_command():
     assert excinfo.value.error_code == "<EMPTY_COMMAND_STRING>"
 
     with pytest.raises(MinisculeError) as excinfo:
-        validate_command("SET key1 value1 extra_arg")
+        validate_command("SET key1 value1 str extra_arg")
     assert excinfo.value.error_code == "<TOO_MANY_ARGS>"
 
     with pytest.raises(MinisculeError) as excinfo:
@@ -44,3 +44,25 @@ def test_handle_command():
     assert handle_command("DEL key1", LOCK, DATA_STORE) == "<DELETED>"
     assert "key1" not in DATA_STORE
     assert handle_command("DEL non_existent_key", LOCK, DATA_STORE) == "<INVALID_KEY>"
+
+
+def test_parse_value():
+    assert parse_value("123", "int") == 123
+    assert parse_value("45.67", "float") == 45.67
+    assert parse_value("true", "bool") is True
+    assert parse_value("false", "bool") is False
+    assert parse_value("1,2,3", "list") == ["1", "2", "3"]
+    assert parse_value("key:value", "dict") == {"key": "value"}
+    assert parse_value("some string", "str") == "some string"
+
+    with pytest.raises(MinisculeError) as excinfo:
+        parse_value("not_an_int", "int")
+    assert excinfo.value.error_code == "<INVALID_VALUE>"
+
+    with pytest.raises(MinisculeError) as excinfo:
+        parse_value("not_a_dict", "dict")
+    assert excinfo.value.error_code == "<INVALID_VALUE>"
+
+    with pytest.raises(MinisculeError) as excinfo:
+        parse_value("123", "unsupported_type")
+    assert excinfo.value.error_code == "<VALUE_PARSING_ERROR>"
