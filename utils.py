@@ -23,9 +23,9 @@ def parse_value(value, expected_type):
                 result[key.strip()] = val.strip()
             return result
         else:
-            raise MinisculeError(f"Value parsing error", "<VALUE_PARSING_ERROR>")
+            raise MinisculeError(f"Value parsing error", "<ERROR:VALUE_PARSING_ERROR>")
     except ValueError:
-        raise MinisculeError(f"Invalid value for type {expected_type}", "<INVALID_VALUE>")
+        raise MinisculeError(f"Invalid value for type {expected_type}", "<ERROR:INVALID_VALUE>")
 
 
 def handle_command(command, LOCK, DATA_STORE):
@@ -39,16 +39,16 @@ def handle_command(command, LOCK, DATA_STORE):
 
         with LOCK:
             DATA_STORE[key] = parsed_value
-        return "<OK>"
+        return "<SUCCESS:OK>"
 
     elif cmd == "GET":
         key = parts[1]
 
         if not key in DATA_STORE:
-            return "<INVALID_KEY>"
+            return "<ERROR:INVALID_KEY>"
         with LOCK:
             val = str(DATA_STORE.get(key))
-        return val if val else "<INVALID_KEY>"
+        return val if val else "<ERROR:INVALID_KEY>"
 
     elif cmd == "DEL":
         key = parts[1]
@@ -56,9 +56,9 @@ def handle_command(command, LOCK, DATA_STORE):
         with LOCK:
             if key in DATA_STORE:
                 del DATA_STORE[key]
-                return "<DELETED>"
+                return "<SUCCESS:DELETED>"
             else:
-                return "<INVALID_KEY>"
+                return "<ERROR:INVALID_KEY>"
 
 
 def validate_command(command):
@@ -66,27 +66,27 @@ def validate_command(command):
     parts_length = len(parts)
 
     if parts_length == 0:
-        raise MinisculeError("Empty command", "<EMPTY_COMMAND_STRING>")
+        raise MinisculeError("Empty command", "<ERROR:EMPTY_COMMAND_STRING>")
 
     cmd = parts[0].upper()
 
     if cmd == "SET" and parts_length > 4:
-        raise MinisculeError("Too many arguments", "<TOO_MANY_ARGS>")
+        raise MinisculeError("Too many arguments", "<ERROR:TOO_MANY_ARGS>")
     if cmd == "SET" and parts_length < 2:
-        raise MinisculeError("Too few arguments", "<TOO_FEW_ARGS>")
+        raise MinisculeError("Too few arguments", "<ERROR:TOO_FEW_ARGS>")
     if cmd == "SET" and parts_length == 4:
         exp_type = parts[3]
         if exp_type not in {"int", "float", "str", "bool", "list", "dict"}:
-            raise MinisculeError("Invalid type for SET command", "<INVALID_TYPE>")
+            raise MinisculeError("Invalid type for SET command", "<ERROR:INVALID_TYPE>")
     if (cmd == "GET" or cmd == "DEL") and parts_length > 2:
-        raise MinisculeError("Too many arguments", "<TOO_MANY_ARGS>")
+        raise MinisculeError("Too many arguments", "<ERROR:TOO_MANY_ARGS>")
     if cmd not in {"GET", "SET", "DEL"}:
-        raise MinisculeError("Invalid command", "<INVALID_COMMAND>")
+        raise MinisculeError("Invalid command", "<ERROR:INVALID_COMMAND>")
 
     return f"{cmd} " + " ".join(parts[1:])
 
 
 class MinisculeError(Exception):
-    def __init__(self, message, error_code="<GENERIC>"):
+    def __init__(self, message, error_code="<ERROR:GENERIC>"):
         super().__init__(message)
         self.error_code = error_code

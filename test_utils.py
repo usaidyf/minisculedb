@@ -12,19 +12,19 @@ def test_validate_command():
     # Invalid commands
     with pytest.raises(MinisculeError) as excinfo:
         validate_command("")
-    assert excinfo.value.error_code == "<EMPTY_COMMAND_STRING>"
+    assert excinfo.value.error_code == "<ERROR:EMPTY_COMMAND_STRING>"
 
     with pytest.raises(MinisculeError) as excinfo:
         validate_command("SET key1 value1 str extra_arg")
-    assert excinfo.value.error_code == "<TOO_MANY_ARGS>"
+    assert excinfo.value.error_code == "<ERROR:TOO_MANY_ARGS>"
 
     with pytest.raises(MinisculeError) as excinfo:
         validate_command("GET key1 extra_arg")
-    assert excinfo.value.error_code == "<TOO_MANY_ARGS>"
+    assert excinfo.value.error_code == "<ERROR:TOO_MANY_ARGS>"
 
     with pytest.raises(MinisculeError) as excinfo:
         validate_command("UNKNOWN_CMD key1")
-    assert excinfo.value.error_code == "<INVALID_COMMAND>"
+    assert excinfo.value.error_code == "<ERROR:INVALID_COMMAND>"
 
 
 def test_handle_command():
@@ -33,17 +33,17 @@ def test_handle_command():
     LOCK = threading.Lock()
 
     # Test SET command
-    assert handle_command("SET key1 value1", LOCK, DATA_STORE) == "<OK>"
+    assert handle_command("SET key1 value1", LOCK, DATA_STORE) == "<SUCCESS:OK>"
     assert DATA_STORE["key1"] == "value1"
 
     # Test GET command
     assert handle_command("GET key1", LOCK, DATA_STORE) == "value1"
-    assert handle_command("GET non_existent_key", LOCK, DATA_STORE) == "<INVALID_KEY>"
+    assert handle_command("GET non_existent_key", LOCK, DATA_STORE) == "<ERROR:INVALID_KEY>"
 
     # Test DEL command
-    assert handle_command("DEL key1", LOCK, DATA_STORE) == "<DELETED>"
+    assert handle_command("DEL key1", LOCK, DATA_STORE) == "<SUCCESS:DELETED>"
     assert "key1" not in DATA_STORE
-    assert handle_command("DEL non_existent_key", LOCK, DATA_STORE) == "<INVALID_KEY>"
+    assert handle_command("DEL non_existent_key", LOCK, DATA_STORE) == "<ERROR:INVALID_KEY>"
 
 
 def test_parse_value():
@@ -57,12 +57,12 @@ def test_parse_value():
 
     with pytest.raises(MinisculeError) as excinfo:
         parse_value("not_an_int", "int")
-    assert excinfo.value.error_code == "<INVALID_VALUE>"
+    assert excinfo.value.error_code == "<ERROR:INVALID_VALUE>"
 
     with pytest.raises(MinisculeError) as excinfo:
         parse_value("not_a_dict", "dict")
-    assert excinfo.value.error_code == "<INVALID_VALUE>"
+    assert excinfo.value.error_code == "<ERROR:INVALID_VALUE>"
 
     with pytest.raises(MinisculeError) as excinfo:
         parse_value("123", "unsupported_type")
-    assert excinfo.value.error_code == "<VALUE_PARSING_ERROR>"
+    assert excinfo.value.error_code == "<ERROR:VALUE_PARSING_ERROR>"
