@@ -55,7 +55,7 @@ def handle_command(command, lock, data_store, verbose=False):
 
         if not key in data_store:
             return (
-                ("<ERROR:INVALID_KEY>", f"Key:'{key}' does not exist")
+                ("<ERROR:INVALID_KEY>", f"key '{key}' does not exist")
                 if verbose
                 else "<ERROR:INVALID_KEY>"
             )
@@ -67,13 +67,13 @@ def handle_command(command, lock, data_store, verbose=False):
                 return (
                     (
                         "<ERROR:INVALID_KEY>",
-                        f"Key: '{key}' has no value",
+                        f"key '{key}' has no value",
                     )
                     if verbose
                     else "<ERROR:INVALID_KEY>"
                 )
         return (
-            ("<SUCCESS:GET_VALUE>", f"Key: {key}\nValue: {val}\nType: {val_type}")
+            ("<SUCCESS:GET_VALUE>", f"key: {key} | value: {val} | type: {val_type}")
             if verbose
             else ("SUCCESS:GET_VALUE", val)
         )
@@ -85,12 +85,12 @@ def handle_command(command, lock, data_store, verbose=False):
             if key in data_store:
                 del data_store[key]
                 return (
-                    ("<SUCCESS:DELETED>", f"Key: '{key}' deleted successfully")
+                    ("<SUCCESS:DELETED>", f"key '{key}' deleted successfully")
                     if verbose
                     else "<SUCCESS:DELETED>"
                 )
             else:
-                return ("<ERROR:INVALID_KEY>", f"Key: '{key}' does not exist") if verbose else "<ERROR:INVALID_KEY>"
+                return ("<ERROR:INVALID_KEY>", f"key '{key}' does not exist") if verbose else "<ERROR:INVALID_KEY>"
 
 
 def validate_command(command, verbose=False):

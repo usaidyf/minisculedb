@@ -14,6 +14,8 @@ def main():
         connected = True
         while connected:
             try:
+                # 1024 is the size of the buffer in bytes for receiving data
+                # meaning that the server will read up to 1024 bytes of data sent by the client at a time.
                 msg = conn.recv(1024).decode("utf-8")
                 if not msg:
                     break
@@ -22,6 +24,8 @@ def main():
                     connected = False
                     break
 
+                # This is for the client to receive more detailed responses from the server for
+                # debugging, testing purposes and for a more "console-like" experience.
                 if msg.strip().upper() == "VERBOSE":
                     global CLIENT_VERBOSE
                     CLIENT_VERBOSE = not CLIENT_VERBOSE
@@ -29,14 +33,19 @@ def main():
                     conn.send(f"<VERBOSE MODE {status}>\n".encode("utf-8"))
                     continue
 
+                # Log at the server side which client sent which command for better debugging.
                 print(f"[{addr}] {msg}")
+                
+                # The server processes the command sent by the client using the following function:
                 response = handle_command(
                     validate_command(msg, CLIENT_VERBOSE),
                     LOCK,
                     DATA_STORE,
                     CLIENT_VERBOSE,
                 )
-                conn.send(f"{response}\n".encode("utf-8"))
+
+                # Sends the response from above back to the client
+                conn.send(f"{response}{"\n" if CLIENT_VERBOSE else ''}".encode("utf-8"))
 
             except ConnectionResetError:
                 break
