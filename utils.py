@@ -104,7 +104,7 @@ def validate_command(command, verbose=False):
 
     if cmd == "SET" and parts_length > 4:
         raise MinisculeError("Too many arguments", "<ERROR:TOO_MANY_ARGS>")
-    if cmd == "SET" and parts_length < 2:
+    if cmd == "SET" and parts_length < 3:
         raise MinisculeError("Too few arguments", "<ERROR:TOO_FEW_ARGS>")
     if cmd == "SET" and parts_length == 4:
         exp_type = parts[3]

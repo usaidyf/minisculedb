@@ -37,7 +37,8 @@ def test_handle_command():
     assert DATA_STORE["key1"] == "value1"
 
     # Test GET command
-    assert handle_command("GET key1", LOCK, DATA_STORE) == "value1"
+    result = handle_command("GET key1", LOCK, DATA_STORE)
+    assert result == ("SUCCESS:GET_VALUE", "value1")
     assert handle_command("GET non_existent_key", LOCK, DATA_STORE) == "<ERROR:INVALID_KEY>"
 
     # Test DEL command

@@ -14,9 +14,35 @@ Minisculedb is a minimal, lightweight, in-memory key-value database server imple
 
 ## Quickstart
 
-Start the server:
-```bash
-python main.py
-```
+It is recommended to use a virtual environment for running and testing the project.
 
-Connect via `telnet` or `netcat` and send commands!
+1. **Create and activate a virtual environment:**
+   ```bash
+   python -m venv .venv
+   
+   # On Windows:
+   .venv\Scripts\activate
+   # On macOS/Linux:
+   source .venv/bin/activate
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install .
+   ```
+
+3. **Start the server:**
+   ```bash
+   python main.py
+   ```
+
+4. **Connect:**
+   Connect via `telnet` or `netcat` and send commands!
+
+## Testing
+
+The project uses `pytest` for testing. After setting up the virtual environment and installing dependencies:
+
+```bash
+pytest
+```
