@@ -3,14 +3,13 @@ import threading
 from utils import handle_command, validate_command, MinisculeError
 from config import HOST, PORT, DATA_STORE, LOCK
 
-CLIENT_VERBOSE = False
-
 
 def main():
     def handle_client(conn, addr):
         print(f"[NEW CONNECTION] {addr} connected.")
         conn.send("Welcome to Minisculedb!\n".encode("utf-8"))
 
+        client_verbose = False
         connected = True
         while connected:
             try:
@@ -27,25 +26,24 @@ def main():
                 # This is for the client to receive more detailed responses from the server for
                 # debugging, testing purposes and for a more "console-like" experience.
                 if msg.strip().upper() == "VERBOSE":
-                    global CLIENT_VERBOSE
-                    CLIENT_VERBOSE = not CLIENT_VERBOSE
-                    status = "ON" if CLIENT_VERBOSE else "OFF"
+                    client_verbose = not client_verbose
+                    status = "ON" if client_verbose else "OFF"
                     conn.send(f"<VERBOSE MODE {status}>\n".encode("utf-8"))
                     continue
 
                 # Log at the server side which client sent which command for better debugging.
                 print(f"[{addr}] {msg}")
-                
+
                 # The server processes the command sent by the client using the following function:
                 response = handle_command(
-                    validate_command(msg, CLIENT_VERBOSE),
+                    validate_command(msg, client_verbose),
                     LOCK,
                     DATA_STORE,
-                    CLIENT_VERBOSE,
+                    client_verbose,
                 )
 
                 # Sends the response from above back to the client
-                conn.send(f"{response}{"\n" if CLIENT_VERBOSE else ''}".encode("utf-8"))
+                conn.send(f"{response}{"\n" if client_verbose else ''}".encode("utf-8"))
 
             except ConnectionResetError:
                 break
