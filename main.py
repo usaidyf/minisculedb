@@ -3,6 +3,7 @@ import threading
 from utils import handle_command, validate_command, MinisculeError
 from config import HOST, PORT, DATA_STORE, LOCK
 
+CLIENT_VERBOSE = False
 
 def main():
     def handle_client(conn, addr):
@@ -20,8 +21,15 @@ def main():
                     connected = False
                     break
                 
+                if msg.strip().upper() == "VERBOSE":
+                    global CLIENT_VERBOSE
+                    CLIENT_VERBOSE = not CLIENT_VERBOSE
+                    status = "ON" if CLIENT_VERBOSE else "OFF"
+                    conn.send(f"<VERBOSE MODE {status}>\n".encode('utf-8'))
+                    continue
+                
                 print(f"[{addr}] {msg}")
-                response = handle_command(validate_command(msg), LOCK, DATA_STORE)
+                response = handle_command(validate_command(msg, CLIENT_VERBOSE), LOCK, DATA_STORE, CLIENT_VERBOSE)
                 conn.send(f"{response}\n".encode('utf-8'))
                 
             except ConnectionResetError:
