@@ -1,6 +1,6 @@
-# Minisculedb
+# MinisculeDB
 
-Minisculedb is a minimal, lightweight, in-memory key-value database server implemented in Python using raw sockets.
+MinisculeDB is a minimal, lightweight, in-memory key-value database server implemented in Python using raw sockets.
 
 ## Features
 
