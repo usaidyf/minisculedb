@@ -16,9 +16,9 @@ MinisculeDB is a minimal, lightweight, in-memory key-value database server imple
 
 It is recommended to use a virtual environment for running and testing the project.
 
-1. **Create and activate a virtual environment:**
+1. **Create and activate a virtual environment using uv:**
    ```bash
-   python -m venv .venv
+   uv venv
    
    # On Windows:
    .venv\Scripts\activate
@@ -28,20 +28,26 @@ It is recommended to use a virtual environment for running and testing the proje
 
 2. **Install dependencies:**
    ```bash
-   pip install .
+   uv sync
    ```
 
-3. **Start the server:**
+3. **Set environment variables: (using .env file)**
    ```bash
-   python main.py
+   cp .env.example .env
+   # Edit .env file with your desired values
    ```
 
-4. **Connect:**
+4. **Start the server:**
+   ```bash
+   uv run main.py
+   ```
+
+5. **Connect:**
    Connect via `telnet` or `netcat` and send commands!
 
 ## Testing
 
-The project uses `pytest` for testing. After setting up the virtual environment and installing dependencies:
+The project uses `pytest` for testing. After setting up the virtual environment and installing dependencies you can optionally run the tests using:
 
 ```bash
 pytest
