@@ -43,11 +43,11 @@ def handle_command(command, lock, data_store, verbose=False):
             data_store[key] = parsed_value
         return (
             (
-                "<SUCCESS:OK>",
+                "<SUCCESS:SET_VALUE>",
                 f"SET command executed: {key} = {parsed_value} (type: {exp_type})",
             )
             if verbose
-            else "<SUCCESS:OK>"
+            else "<SUCCESS:SET_VALUE>"
         )
 
     elif cmd == "GET":
@@ -92,11 +92,14 @@ def handle_command(command, lock, data_store, verbose=False):
             else:
                 return ("<ERROR:INVALID_KEY>", f"key '{key}' does not exist") if verbose else "<ERROR:INVALID_KEY>"
 
+def split_with_preserving_quotes(s):
+    import shlex
+    return shlex.split(s)
 
 def validate_command(command, verbose=False):
-    parts = command.split()
+    parts = split_with_preserving_quotes(command.strip())
     parts_length = len(parts)
-
+    
     if parts_length == 0:
         raise MinisculeError("Empty command", "<ERROR:EMPTY_COMMAND_STRING>")
 
@@ -115,7 +118,9 @@ def validate_command(command, verbose=False):
     if cmd not in {"GET", "SET", "DEL", "VERBOSE", "EXIT"}:
         raise MinisculeError("Invalid command", "<ERROR:INVALID_COMMAND>")
 
-    return f"{cmd} " + " ".join(parts[1:])
+    # Return original string but with capitalized command
+    original_cmd = command.strip()[:len(parts[0])]
+    return cmd + command.strip()[len(original_cmd):]
 
 
 class MinisculeError(Exception):

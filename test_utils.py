@@ -6,10 +6,23 @@ import threading
 def test_validate_command():
     # Valid commands
     assert validate_command("SET key1 value1") == "SET key1 value1"
+    assert validate_command("SET key1 \"value2 but with spaces, quotes and longer\" str") == "SET key1 \"value2 but with spaces, quotes and longer\" str"
+    
+    # With different types
+    assert validate_command("SET key2 123 int") == "SET key2 123 int"
+    assert validate_command("SET key3 45.67 float") == "SET key3 45.67 float"
+    assert validate_command("SET key4 true bool") == "SET key4 true bool"
+    assert validate_command("SET key5 1,2,3 list") == "SET key5 1,2,3 list"
+    assert validate_command("SET key6 key:value dict") == "SET key6 key:value dict"
+    
     assert validate_command("GET key1") == "GET key1"
     assert validate_command("DEL key1") == "DEL key1"
 
     # Invalid commands
+    with pytest.raises(MinisculeError) as excinfo:
+        assert validate_command("SET key1 value2 but with spaces and longer str")
+    assert excinfo.value.error_code == "<ERROR:TOO_MANY_ARGS>"
+
     with pytest.raises(MinisculeError) as excinfo:
         validate_command("")
     assert excinfo.value.error_code == "<ERROR:EMPTY_COMMAND_STRING>"
@@ -33,7 +46,7 @@ def test_handle_command():
     LOCK = threading.Lock()
 
     # Test SET command
-    assert handle_command("SET key1 value1", LOCK, DATA_STORE) == "<SUCCESS:OK>"
+    assert handle_command("SET key1 value1", LOCK, DATA_STORE) == "<SUCCESS:SET_VALUE>"
     assert DATA_STORE["key1"] == "value1"
 
     # Test GET command
