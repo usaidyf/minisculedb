@@ -16,33 +16,34 @@ MinisculeDB is a minimal, lightweight, in-memory key-value database server imple
 
 It is recommended to use a virtual environment for running and testing the project.
 
-1. **Create and activate a virtual environment using uv:**
+1. **Create and activate a virtual environment using <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">uv</a>:**
    ```bash
    uv venv
-   
-   # On Windows:
-   .venv\Scripts\activate
+   ```
+   ```bash
    # On macOS/Linux:
    source .venv/bin/activate
+   # On Windows:
+   .venv\Scripts\activate
    ```
 
-2. **Install dependencies:**
+1. **Install dependencies:**
    ```bash
    uv sync
    ```
 
-3. **Set environment variables: (using .env file)**
+2. **Set environment variables: (using .env file)**
    ```bash
    cp .env.example .env
-   # Edit .env file with your desired values
    ```
+   This will create a new .env file, you can update it to your preferences.
 
-4. **Start the server:**
+3. **Start the server:**
    ```bash
    uv run main.py
    ```
 
-5. **Connect:**
+4. **Connect:**
    Connect via `telnet` or `netcat` and send commands!
 
 ## Testing
