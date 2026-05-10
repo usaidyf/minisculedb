@@ -43,7 +43,7 @@ def main():
                 )
 
                 # Sends the response from above back to the client
-                conn.send(f"{response}{"\n" if client_verbose else ''}".encode("utf-8"))
+                conn.send(f"{response}\n".encode("utf-8"))
 
             except ConnectionResetError:
                 break

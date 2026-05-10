@@ -54,7 +54,7 @@ def handle_command(command, lock, data_store, verbose=False):
         return (
             (
                 "<SUCCESS:SET_VALUE>",
-                f"SET command executed: {key} = {parsed_value} (type: {exp_type})",
+                f"SET: {key} = {parsed_value} (type: {exp_type})",
             )
             if verbose
             else "<SUCCESS:SET_VALUE>"
@@ -65,27 +65,27 @@ def handle_command(command, lock, data_store, verbose=False):
 
         if not key in data_store:
             return (
-                ("<ERROR:INVALID_KEY>", f"key '{key}' does not exist")
+                ("<ERROR:INVALID_KEY>", f"GET: {key} does not exist")
                 if verbose
                 else "<ERROR:INVALID_KEY>"
             )
         with lock:
             val = data_store.get(key)
-            val_type = type(val)
+            val_type = type(val).__name__
             val = str(val)
             if not val:
                 return (
                     (
                         "<ERROR:INVALID_KEY>",
-                        f"key '{key}' has no value",
+                        f"GET: {key} has no value",
                     )
                     if verbose
                     else "<ERROR:INVALID_KEY>"
                 )
         return (
-            ("<SUCCESS:GET_VALUE>", f"key: {key} | value: {val} | type: {val_type}")
+            ("<SUCCESS:GET_VALUE>", f"GET: {key} = {val} (type: {val_type})")
             if verbose
-            else ("SUCCESS:GET_VALUE", val)
+            else ("<SUCCESS:GET_VALUE>", val)
         )
 
     elif cmd == "DEL":
@@ -95,13 +95,13 @@ def handle_command(command, lock, data_store, verbose=False):
             if key in data_store:
                 del data_store[key]
                 return (
-                    ("<SUCCESS:DELETED>", f"key '{key}' deleted successfully")
+                    ("<SUCCESS:DELETED>", f"DEL: {key} deleted successfully")
                     if verbose
                     else "<SUCCESS:DELETED>"
                 )
             else:
                 return (
-                    ("<ERROR:INVALID_KEY>", f"key '{key}' does not exist")
+                    ("<ERROR:INVALID_KEY>", f"DEL: {key} does not exist")
                     if verbose
                     else "<ERROR:INVALID_KEY>"
                 )
@@ -150,6 +150,7 @@ class MinisculeError(Exception):
     """
     Custom exception class for handling specific errors in the Minisculedb application, allowing for more descriptive error messages and error codes that can be sent back to clients for better debugging and user experience.
     """
+
     def __init__(self, message, error_code="<ERROR:GENERIC>"):
         super().__init__(message)
         self.error_code = error_code
