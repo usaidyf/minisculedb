@@ -53,11 +53,18 @@ def main():
         conn.close()
 
     def start_server():
+        # socket.AF_INET specifies that we are using IPv4 addresses,
+        # and socket.SOCK_STREAM indicates that we are using TCP for communication.
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Allow reusing the address and port combination to avoid wait times on restart.
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Bind the server socket to the host and port.
         server.bind((HOST, PORT))
         server.listen()
         print(f"[LISTENING] Server is listening on {HOST}:{PORT}")
+
+        # Set a timeout for the accept() method to allow periodic checks for shutdown signals
+        # (like KeyboardInterrupt). This is especially useful on Windows.
         server.settimeout(1.0)
         print("Press Ctrl+C to stop the server.")
 

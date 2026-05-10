@@ -5,6 +5,7 @@ import threading
 load_dotenv()
 
 
+# Useful for getting guaranteed environment variables or else exiting with a clear error message.
 def get_env_or_exit(key):
     value = os.getenv(key)
     if value is None:

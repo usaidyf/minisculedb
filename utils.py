@@ -1,4 +1,10 @@
+import shlex
+
+
 def parse_value(value, expected_type, verbose=False):
+    """
+    Parses and validates values based on their expected types.
+    """
     try:
         if expected_type == "int":
             return int(value)
@@ -31,6 +37,10 @@ def parse_value(value, expected_type, verbose=False):
 
 
 def handle_command(command, lock, data_store, verbose=False):
+    """
+    Handles the logic for processing commands sent by clients, including parsing, validation, and execution of GET, SET, and DEL operations on the in-memory data store.
+    It also supports an optional verbose mode for more detailed responses.
+    """
     parts = split_with_preserving_quotes(command.strip())
     cmd = parts[0]
 
@@ -98,12 +108,18 @@ def handle_command(command, lock, data_store, verbose=False):
 
 
 def split_with_preserving_quotes(s):
-    import shlex
-
+    """
+    Splits a string while preserving quoted substrings.
+    Example: 'SET key "value with spaces"' -> ['SET', 'key', 'value with spaces']
+    """
     return shlex.split(s)
 
 
 def validate_command(command, verbose=False):
+    """
+    Validates the syntax and structure of incoming commands from clients, ensuring they conform to expected formats for GET, SET, DEL, VERBOSE, and EXIT operations. It raises specific errors for various validation failures, such as incorrect argument counts or invalid command types.
+    It also returns the original command string with the command part capitalized for consistent processing later on.
+    """
     parts = split_with_preserving_quotes(command.strip())
     parts_length = len(parts)
 
@@ -131,6 +147,9 @@ def validate_command(command, verbose=False):
 
 
 class MinisculeError(Exception):
+    """
+    Custom exception class for handling specific errors in the Minisculedb application, allowing for more descriptive error messages and error codes that can be sent back to clients for better debugging and user experience.
+    """
     def __init__(self, message, error_code="<ERROR:GENERIC>"):
         super().__init__(message)
         self.error_code = error_code
