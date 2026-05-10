@@ -2,9 +2,10 @@
 
 ## Backlog
 - Add option for verbose server mode
+- Implement HELP command.
+- Add nested dict support with value parsing at every level.
 
 ## In Progress
-- Add authn and authz options for database for it to be able to used by multiple users at the same time.
 
 
 ## Things to remmber

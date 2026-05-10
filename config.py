@@ -1,7 +1,9 @@
 from dotenv import load_dotenv
 import os
 import threading
+
 load_dotenv()
+
 
 def get_env_or_exit(key):
     value = os.getenv(key)
@@ -10,7 +12,8 @@ def get_env_or_exit(key):
         exit(1)
     return value
 
-HOST = get_env_or_exit('HOST')
-PORT = int(get_env_or_exit('PORT'))
+
+HOST = get_env_or_exit("HOST")
+PORT = int(get_env_or_exit("PORT"))
 DATA_STORE = {}
 LOCK = threading.Lock()

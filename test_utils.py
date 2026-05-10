@@ -6,15 +6,18 @@ import threading
 def test_validate_command():
     # Valid commands
     assert validate_command("SET key1 value1") == "SET key1 value1"
-    assert validate_command("SET key1 \"value2 but with spaces, quotes and longer\" str") == "SET key1 \"value2 but with spaces, quotes and longer\" str"
-    
+    assert (
+        validate_command('SET key1 "value2 but with spaces, quotes and longer" str')
+        == 'SET key1 "value2 but with spaces, quotes and longer" str'
+    )
+
     # With different types
     assert validate_command("SET key2 123 int") == "SET key2 123 int"
     assert validate_command("SET key3 45.67 float") == "SET key3 45.67 float"
     assert validate_command("SET key4 true bool") == "SET key4 true bool"
     assert validate_command("SET key5 1,2,3 list") == "SET key5 1,2,3 list"
     assert validate_command("SET key6 key:value dict") == "SET key6 key:value dict"
-    
+
     assert validate_command("GET key1") == "GET key1"
     assert validate_command("DEL key1") == "DEL key1"
 
@@ -49,15 +52,52 @@ def test_handle_command():
     assert handle_command("SET key1 value1", LOCK, DATA_STORE) == "<SUCCESS:SET_VALUE>"
     assert DATA_STORE["key1"] == "value1"
 
+    assert (
+        handle_command('SET key1 "value2 with spaces"', LOCK, DATA_STORE)
+        == "<SUCCESS:SET_VALUE>"
+    )
+    assert DATA_STORE["key1"] == "value2 with spaces"
+
+    assert handle_command("SET key2 123 int", LOCK, DATA_STORE) == "<SUCCESS:SET_VALUE>"
+    assert DATA_STORE["key2"] == 123
+
+    assert (
+        handle_command("SET key3 45.67 float", LOCK, DATA_STORE)
+        == "<SUCCESS:SET_VALUE>"
+    )
+    assert DATA_STORE["key3"] == 45.67
+
+    assert (
+        handle_command("SET key4 true bool", LOCK, DATA_STORE) == "<SUCCESS:SET_VALUE>"
+    )
+    assert DATA_STORE["key4"] is True
+
+    assert (
+        handle_command("SET key5 1,2,3 list", LOCK, DATA_STORE) == "<SUCCESS:SET_VALUE>"
+    )
+    assert DATA_STORE["key5"] == ["1", "2", "3"]
+
+    assert (
+        handle_command("SET key6 key:value dict", LOCK, DATA_STORE)
+        == "<SUCCESS:SET_VALUE>"
+    )
+    assert DATA_STORE["key6"] == {"key": "value"}
+
     # Test GET command
     result = handle_command("GET key1", LOCK, DATA_STORE)
-    assert result == ("SUCCESS:GET_VALUE", "value1")
-    assert handle_command("GET non_existent_key", LOCK, DATA_STORE) == "<ERROR:INVALID_KEY>"
+    assert result == ("SUCCESS:GET_VALUE", "value2 with spaces")
+    assert (
+        handle_command("GET non_existent_key", LOCK, DATA_STORE)
+        == "<ERROR:INVALID_KEY>"
+    )
 
     # Test DEL command
     assert handle_command("DEL key1", LOCK, DATA_STORE) == "<SUCCESS:DELETED>"
     assert "key1" not in DATA_STORE
-    assert handle_command("DEL non_existent_key", LOCK, DATA_STORE) == "<ERROR:INVALID_KEY>"
+    assert (
+        handle_command("DEL non_existent_key", LOCK, DATA_STORE)
+        == "<ERROR:INVALID_KEY>"
+    )
 
 
 def test_parse_value():

@@ -58,12 +58,26 @@ def main():
         server.bind((HOST, PORT))
         server.listen()
         print(f"[LISTENING] Server is listening on {HOST}:{PORT}")
+        server.settimeout(1.0)
+        print("Press Ctrl+C to stop the server.")
 
-        while True:
-            conn, addr = server.accept()
-            thread = threading.Thread(target=handle_client, args=(conn, addr))
-            thread.start()
-            print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")
+        try:
+            while True:
+                try:
+                    conn, addr = server.accept()
+                    thread = threading.Thread(target=handle_client, args=(conn, addr))
+                    thread.start()
+                    print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")
+                except socket.timeout:
+                    continue
+
+        except KeyboardInterrupt:
+            print("\n[SHUTDOWN] Server is shutting down...")
+        except Exception as error:
+            print("\n[CRITICAL] Error:", error)
+        finally:
+            server.close()
+            print("[SHUTDOWN] Server closed.")
 
     start_server()
 
