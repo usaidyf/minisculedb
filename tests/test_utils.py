@@ -1,3 +1,4 @@
+from server.database import MinisculeDatabase
 from server.utils import validate_command, handle_command, parse_value, MinisculeError
 import pytest
 import threading
@@ -45,59 +46,45 @@ def test_validate_command():
 
 def test_handle_command():
     # Mocking a simple data store and lock
-    DATA_STORE = {}
-    LOCK = threading.Lock()
+    test_db = MinisculeDatabase()
 
     # Test SET command
-    assert handle_command("SET key1 value1", LOCK, DATA_STORE) == "<SUCCESS:SET_VALUE>"
-    assert DATA_STORE["key1"] == "value1"
+    assert handle_command("SET key1 value1", test_db) == "<SUCCESS:SET_VALUE>"
+    assert test_db.get("key1") == "value1"
 
     assert (
-        handle_command('SET key1 "value2 with spaces"', LOCK, DATA_STORE)
+        handle_command('SET key1 "value2 with spaces"', test_db)
         == "<SUCCESS:SET_VALUE>"
     )
-    assert DATA_STORE["key1"] == "value2 with spaces"
+    assert test_db.get("key1") == "value2 with spaces"
 
-    assert handle_command("SET key2 123 int", LOCK, DATA_STORE) == "<SUCCESS:SET_VALUE>"
-    assert DATA_STORE["key2"] == 123
+    assert handle_command("SET key2 123 int", test_db) == "<SUCCESS:SET_VALUE>"
+    assert test_db.get("key2") == 123
 
-    assert (
-        handle_command("SET key3 45.67 float", LOCK, DATA_STORE)
-        == "<SUCCESS:SET_VALUE>"
-    )
-    assert DATA_STORE["key3"] == 45.67
+    assert handle_command("SET key3 45.67 float", test_db) == "<SUCCESS:SET_VALUE>"
+    assert test_db.get("key3") == 45.67
 
-    assert (
-        handle_command("SET key4 true bool", LOCK, DATA_STORE) == "<SUCCESS:SET_VALUE>"
-    )
-    assert DATA_STORE["key4"] is True
+    assert handle_command("SET key4 true bool", test_db) == "<SUCCESS:SET_VALUE>"
+    assert test_db.get("key4") is True
 
-    assert (
-        handle_command("SET key5 1,2,3 list", LOCK, DATA_STORE) == "<SUCCESS:SET_VALUE>"
-    )
-    assert DATA_STORE["key5"] == ["1", "2", "3"]
+    assert handle_command("SET key5 1,2,3 list", test_db) == "<SUCCESS:SET_VALUE>"
+    assert test_db.get("key5") == ["1", "2", "3"]
 
-    assert (
-        handle_command("SET key6 key:value dict", LOCK, DATA_STORE)
-        == "<SUCCESS:SET_VALUE>"
-    )
-    assert DATA_STORE["key6"] == {"key": "value"}
+    assert handle_command("SET key6 key:value dict", test_db) == "<SUCCESS:SET_VALUE>"
+    assert test_db.get("key6") == {"key": "value"}
 
     # Test GET command
-    result = handle_command("GET key1", LOCK, DATA_STORE)
+    result = handle_command("GET key1", test_db)
     assert result == ("<SUCCESS:GET_VALUE>", "value2 with spaces")
-    assert (
-        handle_command("GET non_existent_key", LOCK, DATA_STORE)
-        == "<ERROR:INVALID_KEY>"
+    assert handle_command("GET non_existent_key", test_db, verbose=True) == (
+        "<ERROR:INVALID_KEY>",
+        "GET: non_existent_key does not exist",
     )
 
     # Test DEL command
-    assert handle_command("DEL key1", LOCK, DATA_STORE) == "<SUCCESS:DELETED>"
-    assert "key1" not in DATA_STORE
-    assert (
-        handle_command("DEL non_existent_key", LOCK, DATA_STORE)
-        == "<ERROR:INVALID_KEY>"
-    )
+    assert handle_command("DEL key1", test_db) == "<SUCCESS:DELETED>"
+    assert test_db.exists("key1") is False
+    assert handle_command("DEL non_existent_key", test_db) == "<ERROR:INVALID_KEY>"
 
 
 def test_parse_value():

@@ -1,5 +1,6 @@
 import socket
 import threading
+from server.database import MinisculeDatabase
 from server.utils import handle_command, validate_command, MinisculeError
 from config import HOST, PORT
 
@@ -7,7 +8,7 @@ DATA_STORE = {}
 LOCK = threading.Lock()
 
 
-def handle_client(data_store, lock, conn, addr):
+def handle_client(conn, addr, db):
     print(f"[NEW CONNECTION] {addr} connected.")
     conn.send("Welcome to Minisculedb!\n".encode("utf-8"))
 
@@ -39,8 +40,7 @@ def handle_client(data_store, lock, conn, addr):
             # The server processes the command sent by the client using the following function:
             response = handle_command(
                 validate_command(msg, client_verbose),
-                lock,
-                data_store,
+                db,
                 client_verbose,
             )
 
@@ -55,7 +55,7 @@ def handle_client(data_store, lock, conn, addr):
     conn.close()
 
 
-def start_server(data_store, lock, host, port):
+def start_server(host, port):
     # socket.AF_INET specifies that we are using IPv4 addresses,
     # and socket.SOCK_STREAM indicates that we are using TCP for communication.
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -75,7 +75,8 @@ def start_server(data_store, lock, host, port):
         while True:
             try:
                 conn, addr = server.accept()
-                thread = threading.Thread(target=handle_client, args=(data_store, lock, conn, addr))
+                db = MinisculeDatabase()
+                thread = threading.Thread(target=handle_client, args=(conn, addr, db))
                 thread.start()
                 print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")
             except socket.timeout:

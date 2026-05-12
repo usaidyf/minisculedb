@@ -36,7 +36,7 @@ def parse_value(value, expected_type, verbose=False):
         )
 
 
-def handle_command(command, lock, data_store, verbose=False):
+def handle_command(command, db, verbose=False):
     """
     Handles the logic for processing commands sent by clients, including parsing, validation, and execution of GET, SET, and DEL operations on the in-memory data store.
     It also supports an optional verbose mode for more detailed responses.
@@ -49,8 +49,7 @@ def handle_command(command, lock, data_store, verbose=False):
         exp_type = parts[3] if len(parts) == 4 else "str"
         parsed_value = parse_value(value, exp_type, verbose=verbose)
 
-        with lock:
-            data_store[key] = parsed_value
+        db.set(key, parsed_value)
         return (
             (
                 "<SUCCESS:SET_VALUE>",
@@ -63,25 +62,24 @@ def handle_command(command, lock, data_store, verbose=False):
     elif cmd == "GET":
         key = parts[1]
 
-        if not key in data_store:
+        if not db.exists(key):
             return (
                 ("<ERROR:INVALID_KEY>", f"GET: {key} does not exist")
                 if verbose
                 else "<ERROR:INVALID_KEY>"
             )
-        with lock:
-            val = data_store.get(key)
-            val_type = type(val).__name__
-            val = str(val)
-            if not val:
-                return (
-                    (
-                        "<ERROR:INVALID_KEY>",
-                        f"GET: {key} has no value",
-                    )
-                    if verbose
-                    else "<ERROR:INVALID_KEY>"
+        val = db.get(key)
+        val_type = type(val).__name__
+        val = str(val)
+        if not val:
+            return (
+                (
+                    "<ERROR:INVALID_KEY>",
+                    f"GET: {key} has no value",
                 )
+                if verbose
+                else "<ERROR:INVALID_KEY>"
+            )
         return (
             ("<SUCCESS:GET_VALUE>", f"GET: {key} = {val} (type: {val_type})")
             if verbose
@@ -91,20 +89,18 @@ def handle_command(command, lock, data_store, verbose=False):
     elif cmd == "DEL":
         key = parts[1]
 
-        with lock:
-            if key in data_store:
-                del data_store[key]
-                return (
-                    ("<SUCCESS:DELETED>", f"DEL: {key} deleted successfully")
-                    if verbose
-                    else "<SUCCESS:DELETED>"
-                )
-            else:
-                return (
-                    ("<ERROR:INVALID_KEY>", f"DEL: {key} does not exist")
-                    if verbose
-                    else "<ERROR:INVALID_KEY>"
-                )
+        if db.delete(key):
+            return (
+                ("<SUCCESS:DELETED>", f"DEL: {key} deleted successfully")
+                if verbose
+                else "<SUCCESS:DELETED>"
+            )
+        else:
+            return (
+                ("<ERROR:INVALID_KEY>", f"DEL: {key} does not exist")
+                if verbose
+                else "<ERROR:INVALID_KEY>"
+            )
 
 
 def split_with_preserving_quotes(s):
