@@ -44,6 +44,34 @@ def handle_command(command, db, verbose=False):
     parts = split_with_preserving_quotes(command.strip())
     cmd = parts[0]
 
+    if cmd == "HELP":
+        key = parts[1]
+        if key.upper() == "GET":
+            return (
+                "<HELP:GET>",
+                "GET command retrieves the value of a specified key.\nUsage: GET key\nExample: GET foo",
+            )
+        elif key.upper() == "SET":
+            return (
+                "<HELP:SET>",
+                'SET command assigns a value to a specified key with an optional type.\nUsage: SET key value [type]\nExample:\n- SET foo 123 int\n- SET bar "hello world" str',
+            )
+        elif key.upper() == "DEL":
+            return (
+                "<HELP:DEL>",
+                "DEL command deletes a specified key.\nUsage: DEL key\nExample: DEL foo",
+            )
+        elif key.upper() == "VERBOSE":
+            return (
+                "<HELP:VERBOSE>",
+                "VERBOSE command is a standalone command that toggles verbose mode for detailed responses from the server.",
+            )
+        elif key.upper() == "EXIT":
+            return (
+                "<HELP:EXIT>",
+                "EXIT command is a standalone command that disconnects the client from the server.",
+            )
+
     if cmd == "SET":
         key, value = parts[1], parts[2]
         exp_type = parts[3] if len(parts) == 4 else "str"
@@ -124,6 +152,14 @@ def validate_command(command, verbose=False):
 
     cmd = parts[0].upper()
 
+    if cmd == "HELP" and parts_length > 2:
+        raise MinisculeError(
+            "Too many arguments for HELP command", "<ERROR:TOO_MANY_ARGS>"
+        )
+    if cmd == "HELP" and parts_length == 2:
+        help_cmd = parts[1].upper()
+        if help_cmd not in {"GET", "SET", "DEL", "VERBOSE", "EXIT"}:
+            raise MinisculeError("Invalid command for HELP", "<ERROR:INVALID_COMMAND>")
     if cmd == "SET" and parts_length > 4:
         raise MinisculeError("Too many arguments", "<ERROR:TOO_MANY_ARGS>")
     if cmd == "SET" and parts_length < 3:
@@ -134,7 +170,7 @@ def validate_command(command, verbose=False):
             raise MinisculeError("Invalid type for SET command", "<ERROR:INVALID_TYPE>")
     if (cmd == "GET" or cmd == "DEL") and parts_length > 2:
         raise MinisculeError("Too many arguments", "<ERROR:TOO_MANY_ARGS>")
-    if cmd not in {"GET", "SET", "DEL", "VERBOSE", "EXIT"}:
+    if cmd not in {"GET", "SET", "DEL", "VERBOSE", "EXIT", "HELP"}:
         raise MinisculeError("Invalid command", "<ERROR:INVALID_COMMAND>")
 
     # Return original string but with capitalized command

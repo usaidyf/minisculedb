@@ -1,7 +1,6 @@
 from server.database import MinisculeDatabase
 from server.utils import validate_command, handle_command, parse_value, MinisculeError
 import pytest
-import threading
 
 
 def test_validate_command():
@@ -22,9 +21,25 @@ def test_validate_command():
     assert validate_command("GET key1") == "GET key1"
     assert validate_command("DEL key1") == "DEL key1"
 
+    # Help commands
+    assert validate_command("HELP") == "HELP"
+    assert validate_command("HELP GET") == "HELP GET"
+    assert validate_command("HELP SET") == "HELP SET"
+    assert validate_command("HELP DEL") == "HELP DEL"
+    assert validate_command("HELP VERBOSE") == "HELP VERBOSE"
+    assert validate_command("HELP EXIT") == "HELP EXIT"
+
     # Invalid commands
     with pytest.raises(MinisculeError) as excinfo:
         assert validate_command("SET key1 value2 but with spaces and longer str")
+    assert excinfo.value.error_code == "<ERROR:TOO_MANY_ARGS>"
+
+    with pytest.raises(MinisculeError) as excinfo:
+        validate_command("HELP UNKNOWN")
+    assert excinfo.value.error_code == "<ERROR:INVALID_COMMAND>"
+
+    with pytest.raises(MinisculeError) as excinfo:
+        validate_command("HELP GET EXTRA")
     assert excinfo.value.error_code == "<ERROR:TOO_MANY_ARGS>"
 
     with pytest.raises(MinisculeError) as excinfo:
@@ -85,6 +100,13 @@ def test_handle_command():
     assert handle_command("DEL key1", test_db) == "<SUCCESS:DELETED>"
     assert test_db.exists("key1") is False
     assert handle_command("DEL non_existent_key", test_db) == "<ERROR:INVALID_KEY>"
+
+    # Test HELP command
+    assert handle_command("HELP GET", test_db)[0] == "<HELP:GET>"
+    assert handle_command("HELP SET", test_db)[0] == "<HELP:SET>"
+    assert handle_command("HELP DEL", test_db)[0] == "<HELP:DEL>"
+    assert handle_command("HELP VERBOSE", test_db)[0] == "<HELP:VERBOSE>"
+    assert handle_command("HELP EXIT", test_db)[0] == "<HELP:EXIT>"
 
 
 def test_parse_value():

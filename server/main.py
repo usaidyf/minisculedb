@@ -22,13 +22,28 @@ def handle_client(conn, addr, db):
             if not msg:
                 break
 
-            if msg.strip().upper() == "EXIT":
+            one_word_cmd = msg.strip().upper()
+
+            if one_word_cmd == "EXIT":
                 connected = False
                 break
 
+            if one_word_cmd == "HELP":
+                help_message = (
+                    "Available commands:\n"
+                    "SET key value [type] - Set a value with an optional type (str, int, float, bool, list, dict)\n"
+                    "GET key - Get the value of a key\n"
+                    "DEL key - Delete a key\n"
+                    "VERBOSE - Toggle verbose mode for detailed responses\n"
+                    "EXIT - Disconnect from the server\n"
+                    "HELP [command] - Show this help message or details about a specific command"
+                )
+                conn.send(f"{help_message}\n".encode("utf-8"))
+                continue
+
             # This is for the client to receive more detailed responses from the server for
             # debugging, testing purposes and for a more "console-like" experience.
-            if msg.strip().upper() == "VERBOSE":
+            if one_word_cmd == "VERBOSE":
                 client_verbose = not client_verbose
                 status = "ON" if client_verbose else "OFF"
                 conn.send(f"<VERBOSE MODE {status}>\n".encode("utf-8"))
@@ -44,13 +59,22 @@ def handle_client(conn, addr, db):
                 client_verbose,
             )
 
-            # Sends the response from above back to the client
-            conn.send(f"{response}\n".encode("utf-8"))
+            if type(response) == tuple:
+                # If the response is a tuple, it contains both a status code and a detailed message (for verbose mode).
+                status_code, detailed_message = response
+                conn.send(f"{status_code}\n{detailed_message}\n".encode("utf-8"))
+            else:
+                # Sends the response from above back to the client
+                conn.send(f"{response}\n".encode("utf-8"))
 
         except ConnectionResetError:
             break
         except MinisculeError as m_error:
-            conn.send(f"{m_error.error_code}\n".encode("utf-8"))
+            conn.send(
+                f"{m_error.error_code}{f"\n{m_error}" if client_verbose else ''}\n".encode(
+                    "utf-8"
+                )
+            )
 
     conn.close()
 
@@ -92,7 +116,7 @@ def start_server(host, port):
 
 
 def main():
-    start_server(DATA_STORE, LOCK, HOST, PORT)
+    start_server(HOST, PORT)
 
 
 if __name__ == "__main__":

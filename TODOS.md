@@ -2,8 +2,9 @@
 
 ## Backlog
 - Add option for verbose server mode
-- Implement HELP command.
 - Add nested dict support with value parsing at every level.
+- Standardize the response format for better programmatic parsing on the client side. (e.g. use JSON)
+- Add separate error classes for each error type.
 
 ## In Progress
 
