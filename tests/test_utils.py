@@ -1,4 +1,4 @@
-from utils import validate_command, handle_command, parse_value, MinisculeError
+from server.utils import validate_command, handle_command, parse_value, MinisculeError
 import pytest
 import threading
 
@@ -85,7 +85,7 @@ def test_handle_command():
 
     # Test GET command
     result = handle_command("GET key1", LOCK, DATA_STORE)
-    assert result == ("SUCCESS:GET_VALUE", "value2 with spaces")
+    assert result == ("<SUCCESS:GET_VALUE>", "value2 with spaces")
     assert (
         handle_command("GET non_existent_key", LOCK, DATA_STORE)
         == "<ERROR:INVALID_KEY>"
