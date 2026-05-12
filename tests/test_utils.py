@@ -1,5 +1,13 @@
 from server.database import MinisculeDatabase
-from server.utils import validate_command, handle_command, parse_value, MinisculeError
+from server.utils import validate_command, handle_command, parse_value
+from server.errors import (
+    MinisculeError,
+    EmptyCommandError,
+    InvalidCommandError,
+    TooManyArgumentsError,
+    InvalidValueError,
+    ValueParsingError,
+)
 import pytest
 
 
@@ -30,31 +38,31 @@ def test_validate_command():
     assert validate_command("HELP EXIT") == "HELP EXIT"
 
     # Invalid commands
-    with pytest.raises(MinisculeError) as excinfo:
+    with pytest.raises(TooManyArgumentsError) as excinfo:
         assert validate_command("SET key1 value2 but with spaces and longer str")
     assert excinfo.value.error_code == "<ERROR:TOO_MANY_ARGS>"
 
-    with pytest.raises(MinisculeError) as excinfo:
+    with pytest.raises(InvalidCommandError) as excinfo:
         validate_command("HELP UNKNOWN")
     assert excinfo.value.error_code == "<ERROR:INVALID_COMMAND>"
 
-    with pytest.raises(MinisculeError) as excinfo:
+    with pytest.raises(TooManyArgumentsError) as excinfo:
         validate_command("HELP GET EXTRA")
     assert excinfo.value.error_code == "<ERROR:TOO_MANY_ARGS>"
 
-    with pytest.raises(MinisculeError) as excinfo:
+    with pytest.raises(EmptyCommandError) as excinfo:
         validate_command("")
     assert excinfo.value.error_code == "<ERROR:EMPTY_COMMAND_STRING>"
 
-    with pytest.raises(MinisculeError) as excinfo:
+    with pytest.raises(TooManyArgumentsError) as excinfo:
         validate_command("SET key1 value1 str extra_arg")
     assert excinfo.value.error_code == "<ERROR:TOO_MANY_ARGS>"
 
-    with pytest.raises(MinisculeError) as excinfo:
+    with pytest.raises(TooManyArgumentsError) as excinfo:
         validate_command("GET key1 extra_arg")
     assert excinfo.value.error_code == "<ERROR:TOO_MANY_ARGS>"
 
-    with pytest.raises(MinisculeError) as excinfo:
+    with pytest.raises(InvalidCommandError) as excinfo:
         validate_command("UNKNOWN_CMD key1")
     assert excinfo.value.error_code == "<ERROR:INVALID_COMMAND>"
 
@@ -118,14 +126,14 @@ def test_parse_value():
     assert parse_value("key:value", "dict") == {"key": "value"}
     assert parse_value("some string", "str") == "some string"
 
-    with pytest.raises(MinisculeError) as excinfo:
+    with pytest.raises(InvalidValueError) as excinfo:
         parse_value("not_an_int", "int")
     assert excinfo.value.error_code == "<ERROR:INVALID_VALUE>"
 
-    with pytest.raises(MinisculeError) as excinfo:
+    with pytest.raises(InvalidValueError) as excinfo:
         parse_value("not_a_dict", "dict")
     assert excinfo.value.error_code == "<ERROR:INVALID_VALUE>"
 
-    with pytest.raises(MinisculeError) as excinfo:
+    with pytest.raises(ValueParsingError) as excinfo:
         parse_value("123", "unsupported_type")
     assert excinfo.value.error_code == "<ERROR:VALUE_PARSING_ERROR>"

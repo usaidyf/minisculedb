@@ -1,4 +1,13 @@
 import shlex
+from .errors import (
+    EmptyCommandError,
+    InvalidCommandError,
+    InvalidTypeError,
+    InvalidValueError,
+    TooFewArgumentsError,
+    TooManyArgumentsError,
+    ValueParsingError,
+)
 
 
 def parse_value(value, expected_type, verbose=False):
@@ -29,11 +38,9 @@ def parse_value(value, expected_type, verbose=False):
                 result[key.strip()] = val.strip()
             return result
         else:
-            raise MinisculeError(f"Value parsing error", "<ERROR:VALUE_PARSING_ERROR>")
+            raise ValueParsingError(f"Value parsing error for type {expected_type}")
     except ValueError:
-        raise MinisculeError(
-            f"Invalid value for type {expected_type}", "<ERROR:INVALID_VALUE>"
-        )
+        raise InvalidValueError(f"Invalid value for type {expected_type}")
 
 
 def handle_command(command, db, verbose=False):
@@ -148,41 +155,33 @@ def validate_command(command, verbose=False):
     parts_length = len(parts)
 
     if parts_length == 0:
-        raise MinisculeError("Empty command", "<ERROR:EMPTY_COMMAND_STRING>")
+        raise EmptyCommandError("Empty command string")
 
     cmd = parts[0].upper()
 
     if cmd == "HELP" and parts_length > 2:
-        raise MinisculeError(
-            "Too many arguments for HELP command", "<ERROR:TOO_MANY_ARGS>"
-        )
+        raise TooManyArgumentsError("Too many arguments for HELP command")
     if cmd == "HELP" and parts_length == 2:
         help_cmd = parts[1].upper()
         if help_cmd not in {"GET", "SET", "DEL", "VERBOSE", "EXIT"}:
-            raise MinisculeError("Invalid command for HELP", "<ERROR:INVALID_COMMAND>")
+            raise InvalidCommandError(
+                "Invalid command for HELP. Supported commands: GET, SET, DEL, VERBOSE, EXIT"
+            )
+
     if cmd == "SET" and parts_length > 4:
-        raise MinisculeError("Too many arguments", "<ERROR:TOO_MANY_ARGS>")
+        raise TooManyArgumentsError("Too many arguments for SET command")
     if cmd == "SET" and parts_length < 3:
-        raise MinisculeError("Too few arguments", "<ERROR:TOO_FEW_ARGS>")
+        raise TooFewArgumentsError("Too few arguments for SET command")
     if cmd == "SET" and parts_length == 4:
         exp_type = parts[3]
         if exp_type not in {"int", "float", "str", "bool", "list", "dict"}:
-            raise MinisculeError("Invalid type for SET command", "<ERROR:INVALID_TYPE>")
+            raise InvalidTypeError("Invalid type for SET command")
+
     if (cmd == "GET" or cmd == "DEL") and parts_length > 2:
-        raise MinisculeError("Too many arguments", "<ERROR:TOO_MANY_ARGS>")
+        raise TooManyArgumentsError("Too many arguments")
     if cmd not in {"GET", "SET", "DEL", "VERBOSE", "EXIT", "HELP"}:
-        raise MinisculeError("Invalid command", "<ERROR:INVALID_COMMAND>")
+        raise InvalidCommandError("Invalid command")
 
     # Return original string but with capitalized command
     original_cmd = command.strip()[: len(parts[0])]
     return cmd + command.strip()[len(original_cmd) :]
-
-
-class MinisculeError(Exception):
-    """
-    Custom exception class for handling specific errors in the Minisculedb application, allowing for more descriptive error messages and error codes that can be sent back to clients for better debugging and user experience.
-    """
-
-    def __init__(self, message, error_code="<ERROR:GENERIC>"):
-        super().__init__(message)
-        self.error_code = error_code

@@ -1,7 +1,8 @@
 import socket
 import threading
-from server.database import MinisculeDatabase
-from server.utils import handle_command, validate_command, MinisculeError
+from .database import MinisculeDatabase
+from .utils import handle_command, validate_command
+from .errors import MinisculeError
 from config import HOST, PORT
 
 DATA_STORE = {}
