@@ -1,10 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "minisculedb"
 version = "0.1.0"
-description = "Add your description here"
+description = "A simple in-memory key-value store with a custom protocol."
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = [
-    "pytest>=9.0.2",
-    "python-dotenv>=1.2.2",
-]
+dependencies = ["python-dotenv>=1.2.2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=9.0.2"]
+
+[project.scripts]
+minisculedb-server = "server.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["server"]
