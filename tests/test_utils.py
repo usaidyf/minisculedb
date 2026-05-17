@@ -1,9 +1,9 @@
 from server.database import MinisculeDatabase
 from server.utils import validate_command, handle_command, parse_value
 from server.errors import (
-    MinisculeError,
     EmptyCommandError,
     InvalidCommandError,
+    TooFewArgumentsError,
     TooManyArgumentsError,
     InvalidValueError,
     ValueParsingError,
@@ -62,6 +62,14 @@ def test_validate_command():
         validate_command("GET key1 extra_arg")
     assert excinfo.value.error_code == "<ERROR:TOO_MANY_ARGS>"
 
+    with pytest.raises(TooFewArgumentsError) as excinfo:
+        validate_command("GET")
+    assert excinfo.value.error_code == "<ERROR:TOO_FEW_ARGS>"
+
+    with pytest.raises(TooFewArgumentsError) as excinfo:
+        validate_command("DEL")
+    assert excinfo.value.error_code == "<ERROR:TOO_FEW_ARGS>"
+
     with pytest.raises(InvalidCommandError) as excinfo:
         validate_command("UNKNOWN_CMD key1")
     assert excinfo.value.error_code == "<ERROR:INVALID_COMMAND>"
@@ -96,9 +104,14 @@ def test_handle_command():
     assert handle_command("SET key6 key:value dict", test_db) == "<SUCCESS:SET_VALUE>"
     assert test_db.get("key6") == {"key": "value"}
 
+    assert handle_command('SET key7 ""', test_db) == "<SUCCESS:SET_VALUE>"
+    assert test_db.get("key7") == ""
+
     # Test GET command
     result = handle_command("GET key1", test_db)
     assert result == ("<SUCCESS:GET_VALUE>", "value2 with spaces")
+    assert handle_command("GET key7", test_db) == ("<SUCCESS:GET_VALUE>", "")
+
     assert handle_command("GET non_existent_key", test_db, verbose=True) == (
         "<ERROR:INVALID_KEY>",
         "GET: non_existent_key does not exist",

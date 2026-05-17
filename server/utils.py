@@ -106,15 +106,6 @@ def handle_command(command, db, verbose=False):
         val = db.get(key)
         val_type = type(val).__name__
         val = str(val)
-        if not val:
-            return (
-                (
-                    "<ERROR:INVALID_KEY>",
-                    f"GET: {key} has no value",
-                )
-                if verbose
-                else "<ERROR:INVALID_KEY>"
-            )
         return (
             ("<SUCCESS:GET_VALUE>", f"GET: {key} = {val} (type: {val_type})")
             if verbose
@@ -179,6 +170,8 @@ def validate_command(command, verbose=False):
 
     if (cmd == "GET" or cmd == "DEL") and parts_length > 2:
         raise TooManyArgumentsError("Too many arguments")
+    if (cmd == "GET" or cmd == "DEL") and parts_length < 2:
+        raise TooFewArgumentsError(f"Too few arguments for {cmd} command")
     if cmd not in {"GET", "SET", "DEL", "VERBOSE", "EXIT", "HELP"}:
         raise InvalidCommandError("Invalid command")
 

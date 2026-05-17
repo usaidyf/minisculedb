@@ -5,9 +5,6 @@ from .utils import handle_command, validate_command
 from .errors import MinisculeError
 from config import HOST, PORT
 
-DATA_STORE = {}
-LOCK = threading.Lock()
-
 
 def handle_client(conn, addr, db):
     print(f"[NEW CONNECTION] {addr} connected.")
@@ -60,7 +57,7 @@ def handle_client(conn, addr, db):
                 client_verbose,
             )
 
-            if type(response) == tuple:
+            if isinstance(response, tuple):
                 # If the response is a tuple, it contains both a status code and a detailed message (for verbose mode).
                 status_code, detailed_message = response
                 conn.send(f"{status_code}\n{detailed_message}\n".encode("utf-8"))
@@ -97,10 +94,10 @@ def start_server(host, port):
     print("Press Ctrl+C to stop the server.")
 
     try:
+        db = MinisculeDatabase()
         while True:
             try:
                 conn, addr = server.accept()
-                db = MinisculeDatabase()
                 thread = threading.Thread(target=handle_client, args=(conn, addr, db))
                 thread.start()
                 print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")

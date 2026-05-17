@@ -4,7 +4,7 @@
 - Add option for verbose server mode
 - Add nested dict support with value parsing at every level.
 - Standardize the response format for better programmatic parsing on the client side. (e.g. use JSON)
-- Add separate error classes for each error type.
+- Create a WOL (write only log) for all the transactions on the database to be able to recover from any unexpected crashes or data loss. Wipe off the log file completely after every safe exit of the server side program.
 
 ## In Progress
 
