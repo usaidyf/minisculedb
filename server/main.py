@@ -1,5 +1,7 @@
 import socket
 import threading
+
+from server.response import Response
 from .database import MinisculeDatabase
 from .utils import handle_command, validate_command
 from .errors import MinisculeError
@@ -10,7 +12,6 @@ def handle_client(conn, addr, db):
     print(f"[NEW CONNECTION] {addr} connected.")
     conn.send("Welcome to Minisculedb!\n".encode("utf-8"))
 
-    client_verbose = False
     connected = True
     while connected:
         try:
@@ -32,19 +33,10 @@ def handle_client(conn, addr, db):
                     "SET key value [type] - Set a value with an optional type (str, int, float, bool, list, dict)\n"
                     "GET key - Get the value of a key\n"
                     "DEL key - Delete a key\n"
-                    "VERBOSE - Toggle verbose mode for detailed responses\n"
                     "EXIT - Disconnect from the server\n"
                     "HELP [command] - Show this help message or details about a specific command"
                 )
                 conn.send(f"{help_message}\n".encode("utf-8"))
-                continue
-
-            # This is for the client to receive more detailed responses from the server for
-            # debugging, testing purposes and for a more "console-like" experience.
-            if one_word_cmd == "VERBOSE":
-                client_verbose = not client_verbose
-                status = "ON" if client_verbose else "OFF"
-                conn.send(f"<VERBOSE MODE {status}>\n".encode("utf-8"))
                 continue
 
             # Log at the server side which client sent which command for better debugging.
@@ -52,27 +44,24 @@ def handle_client(conn, addr, db):
 
             # The server processes the command sent by the client using the following function:
             response = handle_command(
-                validate_command(msg, client_verbose),
+                validate_command(msg),
                 db,
-                client_verbose,
             )
 
-            if isinstance(response, tuple):
-                # If the response is a tuple, it contains both a status code and a detailed message (for verbose mode).
-                status_code, detailed_message = response
-                conn.send(f"{status_code}\n{detailed_message}\n".encode("utf-8"))
-            else:
-                # Sends the response from above back to the client
-                conn.send(f"{response}\n".encode("utf-8"))
+            print(f"[{addr}] Response: {response.serialize()}")
+
+            conn.send(f"{response.serialize()}\n".encode("utf-8"))
 
         except ConnectionResetError:
             break
         except MinisculeError as m_error:
-            conn.send(
-                f"{m_error.error_code}{f"\n{m_error}" if client_verbose else ''}\n".encode(
-                    "utf-8"
-                )
+            # Reconstruct the response format to match what users expect natively
+            err_response = Response(
+                {"status": m_error.code["status"], "action": m_error.code["message"]},
+                message=str(m_error),
             )
+            print(f"[{addr}] Error: {m_error.code['status']}:{m_error.code['message']}")
+            conn.send(f"{err_response.serialize()}\n".encode("utf-8"))
 
     conn.close()
 

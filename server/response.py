@@ -23,7 +23,11 @@ class Response:
             )
 
         if mode == "python_tuple":
-            return (f"{self.code['status']}:{self.code['action']}", self.value, self.message)
+            return (
+                f"{self.code['status']}:{self.code['action']}",
+                self.value,
+                self.message,
+            )
 
         parts = [f"{self.code['status']}:{self.code['action']}"]
         if self.value:
